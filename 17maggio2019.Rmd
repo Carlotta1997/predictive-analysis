@@ -1,0 +1,165 @@
+---
+title: "17maggio2019"
+author: "Carlotta Medana"
+date: "17/5/2019"
+output: html_document
+---
+
+# First lession: read dataset
+
+We read the data from the csv file `Advertising.csv`
+
+```{r}
+setwd("~/Desktop/Analisi")
+adv <- read.csv("csv/Advertising.csv")
+```
+
+Here above we can see that the dataset show the sales depending on tv advertising, radio advertising and newspaper advertising.
+
+We want to have a function m that can predict the numbers of sales in 1000's depending by the advertising on Tv, Radio and Newspapers.
+
+# Second lession: exercises
+
+## Esercizio 1
+
+1. Plot and compare them using R
+
+```{r}
+library(ggplot2)
+mu <- function(x) {
+  return((3*x+2)/(6*x+3))
+}
+m <- function(x) {
+  return (7/11 - 1/11*x)
+}
+plot(mu)
+plot(m, col = "red", add = TRUE)
+```
+
+2. Simulate 100 variables from the random variable $E(Y|X=x)$
+
+```{r}
+set.seed(12)
+random_numbers = runif(100, 0, 1)
+plot(random_numbers)
+result = mu(random_numbers)
+plot(random_numbers, result)
+plot(m, col = "red", add=TRUE)
+```
+
+##Esercizio 3
+
+Covariance and correlation
+
+#### 1. Write a R function that calculates the empirical covariance and the empirical correlation coefficient according the formulas given in the slides.
+
+```{r}
+standard_deviation <- function(x) {
+  n <- length(x)
+  return (sqrt((1/n * sum( (x - mean(x))^2 ))))
+}
+empirical_covariance <- function(x, y) {
+  if (length(x) != length(y)) {
+    stop("The two arrays must have the sime size!")
+  } else {
+    n <- length(x)
+    return (1/n * sum( (x-mean(x))*(y-mean(y)) )) 
+  }
+}
+empirical_correlation <- function(x, y) {
+  if (length(x) != length(y)) {
+    stop("The two arrays must have the sime size!")
+  } else {
+    n <- length(x)
+    sd_x <- standard_deviation(x)
+    sd_y <- standard_deviation(y)
+    cov_xy <- empirical_covariance(x,y)
+    
+    return (cov_xy / (sd_x*sd_y))
+  }
+}
+```
+
+#### 2. Modify the previous function for delaing with missing data in one variable.
+
+You must call this function `check_arrays` in the previously functions that returns the two arrays without `NaN` values.
+
+```{r}
+check_arrays <- function(x, y) {
+  x1 <- x[!is.nan(y)]
+  y1 <- y[!is.nan(x)]
+  x1 <- x1[!is.nan(x1)]
+  y1 <- y1[!is.nan(y1)]
+  return (list("x" = x1, "y" = y1))
+}
+```
+
+#### 3. Compare it with `cov` and `cor`. What is the difference?
+
+```{r}
+set.seed(12)
+result <- check_arrays(random_numbers, mu(random_numbers))
+
+x <- getElement(result, "x")
+y <- getElement(result, "y")
+cov <- cov(x, y)
+e_cov <- empirical_covariance(x, y)
+cor <- cor(x, y)
+e_cor <- empirical_correlation(x, y)
+```
+
+We can see that the vlues of covariance and empirical covariance are: `r cov`, `r e_cov`; 
+
+And the values of correlation and empirical correlation are: `r cor`, `r e_cor`;
+
+So we can note that there aren't big differences between the values.
+
+#### 4. Download in R the file `ex1.csv`, calculate the empirical correlation between X and Y .
+
+```{r}
+ex1 <- read.csv("csv/ex1.csv")
+result <- check_arrays(ex1$X, ex1$Y)
+
+x <- getElement(result, "x")
+y <- getElement(result, "y")
+
+empirical_correlation(x, y)
+```
+
+#### 5. Now calculate the 5 correlations when $Z = 1, 2, . . . , 5$. Could you give an explanation of this results
+
+```{r}
+x1 <- ex1$X[ex1$Z == 1]
+y1 <- ex1$Y[ex1$Z == 1]
+
+x2 <- ex1$X[ex1$Z == 2]
+y2 <- ex1$Y[ex1$Z == 2]
+
+x3 <- ex1$X[ex1$Z == 3]
+y3 <- ex1$Y[ex1$Z == 3]
+
+x4 <- ex1$X[ex1$Z == 4]
+y4 <- ex1$Y[ex1$Z == 4]
+
+x5 <- ex1$X[ex1$Z == 5]
+y5 <- ex1$Y[ex1$Z == 5]
+```
+
+* $Z = 1$: correlation = `r empirical_correlation(x1, y1)`
+
+* $Z = 2$: correlation = `r empirical_correlation(x2, y2)`
+
+* $Z = 3$: correlation = `r empirical_correlation(x3, y3)`
+
+* $Z = 4$: correlation = `r empirical_correlation(x4, y4)`
+
+* $Z = 5$: correlation = `r empirical_correlation(x5, y5)`
+
+We can note that in this cases the correlation is higher than the correlation between X and Y without consider Z.
+
+#### 6. Find a real data example for three variables X, Y, Z for which Z is a confounder.
+
+For example we can consider a dataset that rappresent the increase of the economy in past 50 years and add a confounder that divide the dataset in two parts: poor people and rich people. 
+
+It makes me think that the correlation between the increase and the years without the confound could be medium and with the confounder could be higher.
+
